@@ -1,0 +1,87 @@
+import os  
+import json  
+
+def clear_screen():  
+    os.system('cls' if os.name == 'nt' else 'clear')  
+
+def print_board(board):  
+    clear_screen()  
+    print("   0   1   2")  
+    for row in range(3):  
+        print(row, ' ', ' | '.join(board[row]))  
+        if row < 2:  
+            print("  -----------")  
+
+def check_winner(board):  
+      
+    for row in board:  
+        if row[0] == row[1] == row[2] and row[0] != " ":  
+            return row[0]  
+    
+    for col in range(3):  
+        if board[0][col] == board[1][col] == board[2][col] and board[0][col] != " ":  
+            return board[0][col]  
+
+    if board[0][0] == board[1][1] == board[2][2] and board[0][0] != " ":  
+        return board[0][0]  
+    if board[0][2] == board[1][1] == board[2][0] and board[0][2] != " ":  
+        return board[0][2]  
+
+    return None  
+
+def is_board_full(board):  
+    return all(space != " " for row in board for space in row)  
+
+def load_scores():  
+    if os.path.exists("scores.json"):  
+        with open("scores.json", "r") as f:  
+            return json.load(f)  
+    return {"X": 0, "O": 0}  
+
+def save_scores(scores):  
+    with open("scores.json", "w") as f:  
+        json.dump(scores, f)  
+
+def play_game():  
+    board = [[" " for _ in range(3)] for _ in range(3)]  
+    player = "X"  
+    scores = load_scores()   
+
+    while True:  
+        print_board(board)  
+        print(f"Счет: X - {scores['X']} | O - {scores['O']}")  
+        
+        try:  
+            row = int(input(f"Игрок {player}, введите номер строки (0-2): "))  
+            col = int(input(f"Игрок {player}, введите номер столбца (0-2): "))  
+        except ValueError:  
+            print("Пожалуйста, введите числа от 0 до 2.")  
+            continue  
+
+        if row < 0 or row > 2 or col < 0 or col > 2 or board[row][col] != " ":  
+            print("Некорректный ход. Попробуйте еще раз.")  
+            continue  
+
+        board[row][col] = player  
+        winner = check_winner(board)  
+
+        if winner:  
+            print_board(board)  
+            print(f"Игрок {winner} победил!")  
+            scores[winner] += 1  
+            save_scores(scores)   
+            input("Нажмите Enter, чтобы начать новую игру.")  
+            play_game()   
+            return   
+
+        if is_board_full(board):  
+            print_board(board)  
+            print("Это ничья!")  
+            input("Нажмите Enter, чтобы начать новую игру.")  
+            play_game()   
+            return   
+
+        player = "O" if player == "X" else "X"   
+
+if __name__ == "__main__":  
+    play_game()
